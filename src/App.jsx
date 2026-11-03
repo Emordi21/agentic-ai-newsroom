@@ -124,7 +124,7 @@ export default function App() {
         {tests.map((t) => (
           <p key={t.label} className={t.ok ? 'ok' : 'error'}>{t.ok ? '✅' : '❌'} {t.label}: {t.msg}</p>
         ))}
-        <br /><small>Keys are stored only in this browser (localStorage) and sent only to OpenAI / SerpAPI via the local dev server.</small>
+        <br /><small>Keys are stored only in this browser (localStorage) and sent only to OpenAI / SerpAPI through this app's own server.</small>
       </section>
 
       {error && <div className="error">⚠️ {error}</div>}
