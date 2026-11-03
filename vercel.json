@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/serp/:path*", "destination": "https://serpapi.com/:path*" },
+    { "source": "/api/openai/:path*", "destination": "https://api.openai.com/:path*" }
+  ]
+}

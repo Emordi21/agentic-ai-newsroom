@@ -1,0 +1,2 @@
+/api/serp/*    https://serpapi.com/:splat       200
+/api/openai/*  https://api.openai.com/:splat    200
