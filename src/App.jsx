@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { runResearchAgent } from './agents/researchAgent.js';
 import { runLinkedInAgent } from './agents/linkedinAgent.js';
 import { runTwitterAgent } from './agents/twitterAgent.js';
+import { testConnections } from './lib/diagnostics.js';
 
 // "State" = data React remembers between renders. When state changes, the screen updates.
 // We save settings in localStorage so you don't retype keys on every refresh.
@@ -29,6 +30,7 @@ export default function App() {
   const [linkedin, setLinkedin] = useState({}); // { ideaId: postText }
   const [threads, setThreads] = useState({}); // { ideaId: [tweets] }
   const [busy, setBusy] = useState(false);
+  const [tests, setTests] = useState([]);
 
   const keysReady = openaiKey.trim() && serpKey.trim();
 
@@ -46,6 +48,11 @@ export default function App() {
       setBusy(false);
       setStatus('');
     }
+  }
+
+  async function runTests() {
+    setTests([{ label: 'Testing…', ok: true, msg: '' }]);
+    setTests(await testConnections({ openaiKey, serpKey, model }));
   }
 
   function toggle(id) {
@@ -113,7 +120,11 @@ export default function App() {
             <input type="number" min="2" max="15" value={tweetCount} onChange={(e) => setTweetCount(e.target.value)} />
           </label>
         </div>
-        <small>Keys are stored only in this browser (localStorage) and sent only to OpenAI / SerpAPI via the local dev server.</small>
+        <button disabled={!keysReady} onClick={runTests}>Test connections</button>
+        {tests.map((t) => (
+          <p key={t.label} className={t.ok ? 'ok' : 'error'}>{t.ok ? '✅' : '❌'} {t.label}: {t.msg}</p>
+        ))}
+        <br /><small>Keys are stored only in this browser (localStorage) and sent only to OpenAI / SerpAPI via the local dev server.</small>
       </section>
 
       {error && <div className="error">⚠️ {error}</div>}

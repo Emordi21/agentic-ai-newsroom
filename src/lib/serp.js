@@ -10,8 +10,13 @@ export async function searchNews({ apiKey, query, num = 8 }) {
     num: String(num),
     api_key: apiKey.trim(),
   });
-  const res = await fetch(`/api/serp/search.json?${params}`);
-  const text = await res.text();
+  let res, text;
+  try {
+    res = await fetch(`/api/serp/search.json?${params}`);
+    text = await res.text();
+  } catch (e) {
+    throw new Error(`Could not reach SerpAPI via /api/serp (${e.message}).`);
+  }
 
   let data;
   try {

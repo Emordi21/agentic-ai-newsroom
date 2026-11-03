@@ -2,7 +2,9 @@
 // Every agent uses this one function, so the "talking to the AI" logic lives in one place.
 
 export async function askJSON({ apiKey, model, system, user }) {
-  const res = await fetch('/api/openai/v1/chat/completions', {
+  let res;
+  try {
+    res = await fetch('/api/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -18,6 +20,10 @@ export async function askJSON({ apiKey, model, system, user }) {
       response_format: { type: 'json_object' },
     }),
   });
+  } catch (e) {
+    // fetch() only throws when the request never completed (blocked, offline, cut off, timed out).
+    throw new Error(`Could not reach OpenAI via /api/openai (${e.message}). The request was blocked or timed out.`);
+  }
 
   if (!res.ok) {
     const detail = await res.text();
