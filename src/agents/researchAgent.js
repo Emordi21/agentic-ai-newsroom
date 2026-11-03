@@ -15,14 +15,20 @@ const QUERIES = [
 
 export async function runResearchAgent({ openaiKey, serpKey, model, onStatus }) {
   onStatus?.('Searching the web for the latest AI news…');
-  const batches = await Promise.all(
-    QUERIES.map((query) => searchNews({ apiKey: serpKey, query }).catch(() => []))
+  // allSettled waits for every search and tells us which succeeded or failed,
+  // instead of silently ignoring failures.
+  const settled = await Promise.allSettled(
+    QUERIES.map((query) => searchNews({ apiKey: serpKey, query }))
   );
+  const batches = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+  const firstError = settled.find((r) => r.status === 'rejected')?.reason;
 
   // Remove duplicate links.
   const seen = new Set();
   const articles = batches.flat().filter((a) => !seen.has(a.link) && seen.add(a.link));
-  if (articles.length === 0) throw new Error('No news found. Check your SerpAPI key.');
+  if (articles.length === 0) {
+    throw new Error(firstError ? firstError.message : 'SerpAPI returned no news results.');
+  }
 
   onStatus?.(`Found ${articles.length} articles. Brainstorming ideas…`);
 
