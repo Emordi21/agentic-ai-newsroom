@@ -7,13 +7,19 @@ const ALLOWED = new Set(['search.json', 'account.json']);
 
 export default async function handler(req, res) {
   try {
-    const endpoint = [].concat(req.query.path ?? []).join('/');
+    // Read the endpoint from the actual request URL, e.g. "/api/serp/search.json?q=ai"
+    // -> endpoint "search.json". (More dependable than req.query.path on Vercel.)
+    const incoming = new URL(req.url, 'http://localhost');
+    let endpoint = incoming.pathname.replace(/^\/api\/serp\/?/, '');
+    // Fallback: Vercel may also hand us the endpoint as req.query.path.
+    if (!ALLOWED.has(endpoint)) endpoint = [].concat(req.query?.path ?? []).join('/');
     if (!ALLOWED.has(endpoint)) {
-      return res.status(404).json({ error: `Endpoint not allowed: ${endpoint}` });
+      return res.status(404).json({ error: `Endpoint not allowed: "${endpoint}" (url: ${req.url.split('?')[0]})` });
     }
 
+    // Forward every query parameter (q, api_key, ...) except the internal "path" one.
     const url = new URL(`https://serpapi.com/${endpoint}`);
-    for (const [key, value] of Object.entries(req.query)) {
+    for (const [key, value] of incoming.searchParams) {
       if (key !== 'path') url.searchParams.set(key, value);
     }
 
